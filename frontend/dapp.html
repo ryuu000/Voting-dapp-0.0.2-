@@ -193,51 +193,54 @@
         <p>© 2025 Mindfulness Community</p>
     </footer>
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const professionals = [
-            { name: 'Dr. John Doe', address: '0x123...' },
-            { name: 'Jane Smith', address: '0x456...' }
-        ];
-        const professionalList = document.getElementById('professionalList');
-        professionals.forEach(professional => {
-            const li = document.createElement('li');
-            li.innerHTML = `
-                <div>
-                    <h4>${professional.name}</h4>
-                    <button type="button" class="vote-button" data-vote="1" data-address="${professional.address}">Upvote</button>
-                    <button type="button" class="vote-button" data-vote="2" data-address="${professional.address}">Downvote</button>
-                </div>
-            `;
-            professionalList.appendChild(li);
-        });
+document.addEventListener('DOMContentLoaded', function() {
+    // Fetch profiles from the backend
+    fetch('/api/profiles')
+        .then(response => response.json())
+        .then(profiles => {
+            const professionalList = document.getElementById('professionalList');
+            profiles.forEach(professional => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <div>
+                        <h4>${professional.name}</h4>
+                        <button type="button" class="vote-button" data-vote="1" data-address="${professional.address}">Upvote</button>
+                        <button type="button" class="vote-button" data-vote="2" data-address="${professional.address}">Downvote</button>
+                    </div>
+                `;
+                professionalList.appendChild(li);
+            });
+        })
+        .catch(error => console.error('Error fetching profiles:', error));
 
-        const metamaskLoginButton = document.getElementById('metamask-login');
-        metamaskLoginButton.addEventListener('click', async function() {
-            if (typeof window.ethereum !== 'undefined') {
-                try {
-                    // Request account access if needed
-                    await window.ethereum.request({ method: 'eth_requestAccounts' });
-                    
-                    // The accounts array will contain the user's MetaMask account(s)
-                    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-                    const userAccount = accounts[0];
+    // Existing code ...
+    const metamaskLoginButton = document.getElementById('metamask-login');
+    metamaskLoginButton.addEventListener('click', async function() {
+        if (typeof window.ethereum !== 'undefined') {
+            try {
+                // Request account access if needed
+                await window.ethereum.request({ method: 'eth_requestAccounts' });
+                
+                // The accounts array will contain the user's MetaMask account(s)
+                const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                const userAccount = accounts[0];
 
-                    console.log('User authenticated', userAccount);
-                    // Handle authenticated user data
-                } catch (error) {
-                    console.error('User denied account access', error);
-                }
-            } else {
-                console.error('MetaMask is not installed. Please install MetaMask and try again.');
+                console.log('User authenticated', userAccount);
+                // Handle authenticated user data
+            } catch (error) {
+                console.error('User denied account access', error);
             }
-        });
-
-        // Handle MetaMask account change
-        window.ethereum.on('accountsChanged', function (accounts) {
-            console.log('Accounts changed', accounts);
-            // Handle account change logic here
-        });
+        } else {
+            console.error('MetaMask is not installed. Please install MetaMask and try again.');
+        }
     });
+
+    // Handle MetaMask account change
+    window.ethereum.on('accountsChanged', function (accounts) {
+        console.log('Accounts changed', accounts);
+        // Handle account change logic here
+    });
+});
 </script>
     <script src="js/jquery.min.js"></script>
     <script src="js/jquery.easing.1.3.js"></script>
