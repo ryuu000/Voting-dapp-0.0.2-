@@ -181,11 +181,11 @@
             </section>
             <section style="background-image: url('images/full_image_1.jpg');" data-stellar-background-ratio="0.5">
                 <h2>About this dApp</h2>
-                <p>This is a sample voting dApp frontend. In future updates, this dApp will be expanded with smart contract integration, allowing for decentralized and transparent voting for wellness professionals.</p>
+                <p>This is a sample voting dApp frontend. In future updates, this dApp will be expanded with smart contract integration, allowing for decentralized and transparent voting for wellness [...]
             </section>
             <section>
-                <h2>HiveSigner</h2>
-                <button id="hivesigner-login" class="btn-34"><span>HiveSigner</span></button>
+                <h2>MetaMask</h2>
+                <button id="metamask-login" class="btn-34"><span>MetaMask</span></button>
             </section>
         </div>
     </main>
@@ -211,25 +211,32 @@
             professionalList.appendChild(li);
         });
 
-        const hivesignerLoginButton = document.getElementById('hivesigner-login');
-        hivesignerLoginButton.addEventListener('click', function() {
-            window.location.href = 'http://localhost:3000/login'; // Adjust URL as needed
+        const metamaskLoginButton = document.getElementById('metamask-login');
+        metamaskLoginButton.addEventListener('click', async function() {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    // Request account access if needed
+                    await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    
+                    // The accounts array will contain the user's MetaMask account(s)
+                    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                    const userAccount = accounts[0];
+
+                    console.log('User authenticated', userAccount);
+                    // Handle authenticated user data
+                } catch (error) {
+                    console.error('User denied account access', error);
+                }
+            } else {
+                console.error('MetaMask is not installed. Please install MetaMask and try again.');
+            }
         });
 
-        // Handle HiveSigner callback
-        const urlParams = new URLSearchParams(window.location.search);
-        const accessToken = urlParams.get('access_token');
-        if (accessToken) {
-            fetch(`http://localhost:3000/callback?access_token=${accessToken}`)
-                .then(response => response.json())
-                .then(data => {
-                    console.log('User authenticated', data);
-                    // Handle authenticated user data
-                })
-                .catch(error => {
-                    console.error('Error during authentication', error);
-                });
-        }
+        // Handle MetaMask account change
+        window.ethereum.on('accountsChanged', function (accounts) {
+            console.log('Accounts changed', accounts);
+            // Handle account change logic here
+        });
     });
 </script>
     <script src="js/jquery.min.js"></script>
