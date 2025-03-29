@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "sqlite3": "^5.1.7",
+    "web3": "^4.16.0"
+  },
+  "devDependencies": {
+    "hardhat": "^0.0.7"
+  }
+}
