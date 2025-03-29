@@ -213,6 +213,31 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .catch(error => console.error('Error fetching profiles:', error));
 
+    // Handle vote button clicks
+    document.getElementById('professionalList').addEventListener('click', function(event) {
+        if (event.target.classList.contains('vote-button')) {
+            const voteType = event.target.dataset.vote;
+            const address = event.target.dataset.address;
+
+            fetch('/api/vote', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    address: address,
+                    voteType: voteType
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Vote recorded:', data);
+                // Optionally update the UI to reflect the vote
+            })
+            .catch(error => console.error('Error recording vote:', error));
+        }
+    });
+
     // Existing code ...
     const metamaskLoginButton = document.getElementById('metamask-login');
     metamaskLoginButton.addEventListener('click', async function() {
@@ -242,6 +267,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+
     <script src="js/jquery.min.js"></script>
     <script src="js/jquery.easing.1.3.js"></script>
     <script src="js/bootstrap.min.js"></script>
