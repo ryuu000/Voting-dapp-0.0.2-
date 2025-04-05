@@ -1,11 +1,13 @@
-require("@nomiclabs/hardhat-ethers");
+require("@nomicfoundation/hardhat-ethers");
+require('dotenv').config();
+
 module.exports = {
   solidity: "0.8.4",
   networks: {
     hardhat: {},
-    ropsten: {
-      url: "https://ropsten.infura.io/v3/YOUR_INFURA_PROJECT_ID",
-      accounts: [`0x${YOUR_PRIVATE_KEY}`]
+    sepolia: {
+      url: `https://sepolia.infura.io/v3/${process.env.INFURA_PROJECT_ID}`,
+      accounts: [process.env.PRIVATE_KEY]
     }
   }
 };
