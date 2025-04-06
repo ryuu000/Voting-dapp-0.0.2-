@@ -229,6 +229,22 @@
         .retry-button:hover {
             background-color: #f57c00;
         }
+        /* Add network indicator styles */
+        .network-indicator {
+            margin-top: 10px;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            text-align: center;
+        }
+        .network-indicator.connected {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .network-indicator.disconnected {
+            background-color: #ff9800;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -261,9 +277,47 @@ let retryAttempts = {};
 const MAX_RETRY_ATTEMPTS = 3;
 const RETRY_DELAY = 2000; // 2 seconds
 
+// API base URL - will be empty for same-origin requests
+const API_BASE_URL = '';
+
+// Ethereum network configuration
+const SUPPORTED_NETWORKS = {
+  // Sepolia testnet
+  '0xaa36a7': {
+    name: 'Sepolia',
+    rpcUrl: 'https://sepolia.infura.io/v3/',
+    explorer: 'https://sepolia.etherscan.io',
+    chainId: '0xaa36a7'
+  },
+  // Goerli testnet
+  '0x5': {
+    name: 'Goerli',
+    rpcUrl: 'https://goerli.infura.io/v3/',
+    explorer: 'https://goerli.etherscan.io',
+    chainId: '0x5'
+  },
+  // Mumbai testnet (Polygon)
+  '0x13881': {
+    name: 'Mumbai',
+    rpcUrl: 'https://rpc-mumbai.maticvigil.com',
+    explorer: 'https://mumbai.polygonscan.com',
+    chainId: '0x13881'
+  }
+};
+
+// Default network to use
+const DEFAULT_NETWORK = '0xaa36a7'; // Sepolia
+
 async function checkMetaMaskConnection() {
     if (typeof window.ethereum !== 'undefined') {
         try {
+            // Check if we're on a supported network
+            const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+            if (!SUPPORTED_NETWORKS[chainId]) {
+                showError(`Please switch to a supported network: ${Object.values(SUPPORTED_NETWORKS).map(n => n.name).join(', ')}`);
+                return;
+            }
+            
             const accounts = await window.ethereum.request({ method: 'eth_accounts' });
             if (accounts.length > 0) {
                 currentAccount = accounts[0];
@@ -280,6 +334,85 @@ function updateUIForConnectedWallet() {
     const metamaskButton = document.getElementById('metamask-login');
     metamaskButton.textContent = `Connected: ${currentAccount.slice(0, 6)}...${currentAccount.slice(-4)}`;
     metamaskButton.disabled = true;
+    
+    // Add network indicator
+    const networkIndicator = document.createElement('div');
+    networkIndicator.id = 'network-indicator';
+    networkIndicator.className = 'network-indicator';
+    metamaskButton.parentNode.appendChild(networkIndicator);
+    
+    // Update network indicator
+    updateNetworkIndicator();
+}
+
+async function updateNetworkIndicator() {
+    if (!window.ethereum) return;
+    
+    try {
+        const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+        const networkIndicator = document.getElementById('network-indicator');
+        
+        if (networkIndicator) {
+            if (SUPPORTED_NETWORKS[chainId]) {
+                networkIndicator.textContent = `Network: ${SUPPORTED_NETWORKS[chainId].name}`;
+                networkIndicator.className = 'network-indicator connected';
+            } else {
+                networkIndicator.textContent = 'Unsupported Network';
+                networkIndicator.className = 'network-indicator disconnected';
+            }
+        }
+    } catch (error) {
+        console.error('Error updating network indicator:', error);
+    }
+}
+
+// Function to switch to a supported network
+async function switchNetwork(targetChainId) {
+    if (!window.ethereum) return;
+    
+    try {
+        // Try to switch to the network
+        await window.ethereum.request({
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: targetChainId }],
+        });
+        
+        // Update UI
+        updateNetworkIndicator();
+        showSuccess(`Switched to ${SUPPORTED_NETWORKS[targetChainId].name} network`);
+    } catch (switchError) {
+        // This error code indicates that the chain has not been added to MetaMask
+        if (switchError.code === 4902) {
+            try {
+                const network = SUPPORTED_NETWORKS[targetChainId];
+                await window.ethereum.request({
+                    method: 'wallet_addEthereumChain',
+                    params: [
+                        {
+                            chainId: targetChainId,
+                            chainName: network.name,
+                            nativeCurrency: {
+                                name: 'ETH',
+                                symbol: 'ETH',
+                                decimals: 18
+                            },
+                            rpcUrls: [network.rpcUrl],
+                            blockExplorerUrls: [network.explorer]
+                        },
+                    ],
+                });
+                
+                // Try switching again
+                await switchNetwork(targetChainId);
+            } catch (addError) {
+                console.error('Error adding network:', addError);
+                showError('Failed to add network to MetaMask');
+            }
+        } else {
+            console.error('Error switching network:', switchError);
+            showError('Failed to switch network');
+        }
+    }
 }
 
 function showError(message) {
@@ -313,7 +446,7 @@ async function fetchWithRetry(url, options, retryKey) {
     
     while (attempts < MAX_RETRY_ATTEMPTS) {
         try {
-            const response = await fetch(url, options);
+            const response = await fetch(`${API_BASE_URL}${url}`, options);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -444,8 +577,17 @@ document.addEventListener('DOMContentLoaded', function() {
     metamaskLoginButton.addEventListener('click', async function() {
         if (typeof window.ethereum !== 'undefined') {
             try {
+                // Request account access
                 const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
                 currentAccount = accounts[0];
+                
+                // Check if we're on a supported network
+                const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+                if (!SUPPORTED_NETWORKS[chainId]) {
+                    // Switch to default network
+                    await switchNetwork(DEFAULT_NETWORK);
+                }
+                
                 updateUIForConnectedWallet();
                 showSuccess('Wallet connected successfully!');
             } catch (error) {
@@ -463,6 +605,13 @@ document.addEventListener('DOMContentLoaded', function() {
             currentAccount = null;
             metamaskLoginButton.textContent = 'MetaMask';
             metamaskLoginButton.disabled = false;
+            
+            // Remove network indicator
+            const networkIndicator = document.getElementById('network-indicator');
+            if (networkIndicator) {
+                networkIndicator.remove();
+            }
+            
             showError('Wallet disconnected');
         } else {
             currentAccount = accounts[0];
@@ -473,10 +622,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Handle network changes
     window.ethereum.on('chainChanged', function (chainId) {
-        showError('Network changed. Please refresh the page.');
-        setTimeout(() => {
-            window.location.reload();
-        }, 3000);
+        if (SUPPORTED_NETWORKS[chainId]) {
+            updateNetworkIndicator();
+            showSuccess(`Connected to ${SUPPORTED_NETWORKS[chainId].name} network`);
+        } else {
+            showError(`Please switch to a supported network: ${Object.values(SUPPORTED_NETWORKS).map(n => n.name).join(', ')}`);
+        }
     });
 
     // Cleanup function

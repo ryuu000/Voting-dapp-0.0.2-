@@ -1,6 +1,164 @@
-# Voting-dapp-0.0.2-
+# Voting dApp
 
-An instance of a voting decentralized application (dApp).
+A decentralized application for voting on wellness professionals.
+
+## Features
+
+- Connect with MetaMask wallet
+- View wellness professional profiles
+- Cast upvotes and downvotes
+- Persistent storage of votes
+- Rate limiting to prevent abuse
+- Support for multiple Ethereum testnets (Sepolia, Goerli, Mumbai)
+
+## Local Development
+
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/voting-dapp.git
+cd voting-dapp
+```
+
+2. Install dependencies:
+```bash
+cd backend
+npm install
+```
+
+3. Create a `.env` file based on `.env.example`:
+```bash
+cp .env.example .env
+# Edit .env with your settings
+```
+
+4. Start the backend server:
+```bash
+npm run dev
+```
+
+5. In a new terminal, serve the frontend:
+```bash
+cd frontend
+python -m http.server 8000
+```
+
+6. Open your browser to `http://localhost:8000/dapp.html`
+
+## Ethereum Testnet Support
+
+This dApp supports multiple Ethereum testnets:
+
+- **Sepolia**: The recommended testnet for Ethereum development
+- **Goerli**: Another popular Ethereum testnet
+- **Mumbai**: Polygon's testnet
+
+### Testnet Configuration
+
+1. Set up your environment variables in `.env`:
+```
+SEPOLIA_RPC_URL=https://sepolia.infura.io/v3/your_infura_project_id
+GOERLI_RPC_URL=https://goerli.infura.io/v3/your_infura_project_id
+MUMBAI_RPC_URL=https://rpc-mumbai.maticvigil.com
+DEFAULT_NETWORK=sepolia
+```
+
+2. Get testnet ETH:
+   - Sepolia: [Sepolia Faucet](https://sepoliafaucet.com/)
+   - Goerli: [Goerli Faucet](https://goerlifaucet.com/)
+   - Mumbai: [Mumbai Faucet](https://faucet.polygon.technology/)
+
+3. Connect your MetaMask wallet to the desired testnet:
+   - The dApp will automatically prompt you to switch networks if needed
+   - You can manually switch networks in MetaMask
+
+## Vercel Deployment
+
+### Prerequisites
+
+- [Vercel account](https://vercel.com/signup)
+- [Vercel CLI](https://vercel.com/docs/cli) (optional)
+
+### Deployment Steps
+
+1. **Prepare your project**:
+   - Make sure your code is pushed to a GitHub repository
+   - Ensure you have the `vercel.json` file in your project root
+
+2. **Deploy using Vercel Dashboard**:
+   - Go to [Vercel Dashboard](https://vercel.com/dashboard)
+   - Click "New Project"
+   - Import your GitHub repository
+   - Configure the project:
+     - Framework Preset: Other
+     - Build Command: `npm install`
+     - Output Directory: `.`
+   - Add environment variables from your `.env` file
+   - Click "Deploy"
+
+3. **Deploy using Vercel CLI** (alternative):
+```bash
+# Install Vercel CLI
+npm install -g vercel
+
+# Login to Vercel
+vercel login
+
+# Deploy
+vercel
+```
+
+### Environment Variables
+
+Set these environment variables in your Vercel project settings:
+
+- `NODE_ENV`: Set to `production`
+- `INFURA_PROJECT_ID`: Your Infura project ID
+- `PRIVATE_KEY`: Your private key for blockchain transactions
+- `CONTRACT_ADDRESS`: Your deployed smart contract address
+- `SEPOLIA_RPC_URL`: Your Sepolia RPC URL
+- `GOERLI_RPC_URL`: Your Goerli RPC URL
+- `MUMBAI_RPC_URL`: Your Mumbai RPC URL
+- `DEFAULT_NETWORK`: Default network to use (sepolia, goerli, or mumbai)
+
+## Testing
+
+1. Populate test data:
+```bash
+cd backend
+node test-data.js
+```
+
+2. Start the server:
+```bash
+npm run dev
+```
+
+3. Open the application in your browser and test:
+   - MetaMask connection
+   - Network switching
+   - Viewing profiles
+   - Casting votes
+   - Error handling
+
+## Project Structure
+
+```
+/
+├── backend/              # Backend server code
+│   ├── server.js         # Express server
+│   ├── test-data.js      # Test data population script
+│   └── package.json      # Backend dependencies
+├── frontend/             # Frontend code
+│   ├── dapp.html         # Main HTML file
+│   ├── css/              # CSS stylesheets
+│   └── js/               # JavaScript files
+├── vercel.json           # Vercel configuration
+└── README.md             # This file
+```
+
+## License
+
+MIT
 
 ## Table of Contents
 - [Introduction](#introduction)
