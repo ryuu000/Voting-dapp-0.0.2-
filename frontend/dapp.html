@@ -482,24 +482,24 @@ function setButtonLoading(button, isLoading) {
 }
 
 async function loadProfiles() {
-    const professionalList = document.getElementById('professionalList');
+            const professionalList = document.getElementById('professionalList');
     professionalList.innerHTML = '<div class="loading-spinner"></div>';
     
     try {
         const profiles = await fetchWithRetry('/api/profiles', {}, 'profiles');
         professionalList.innerHTML = '';
         
-        profiles.forEach(professional => {
-            const li = document.createElement('li');
-            li.innerHTML = `
-                <div>
-                    <h4>${professional.name}</h4>
-                    <button type="button" class="vote-button" data-vote="1" data-address="${professional.address}">Upvote</button>
-                    <button type="button" class="vote-button" data-vote="2" data-address="${professional.address}">Downvote</button>
-                </div>
-            `;
-            professionalList.appendChild(li);
-        });
+            profiles.forEach(professional => {
+                const li = document.createElement('li');
+                li.innerHTML = `
+                    <div>
+                        <h4>${professional.name}</h4>
+                        <button type="button" class="vote-button" data-vote="1" data-address="${professional.address}">Upvote</button>
+                        <button type="button" class="vote-button" data-vote="2" data-address="${professional.address}">Downvote</button>
+                    </div>
+                `;
+                professionalList.appendChild(li);
+            });
     } catch (error) {
         console.error('Error loading profiles:', error);
         professionalList.innerHTML = `
@@ -528,12 +528,12 @@ async function handleVote(event) {
 
     try {
         const data = await fetchWithRetry('/api/vote', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                address: address,
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    address: address,
                 voteType: voteType,
                 voter: currentAccount
             })
