@@ -7,7 +7,8 @@ const fs = require('fs');
 
 // Create a new Express app
 const app = express();
-const port = process.env.PORT || 3000;
+const port = 5000;  // Changed to port 5000
+const host = '0.0.0.0';  // Always bind to all interfaces
 
 // Rate limiting
 const limiter = rateLimit({
@@ -16,9 +17,34 @@ const limiter = rateLimit({
 });
 
 // Enable CORS and rate limiting
-app.use(cors());
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  preflightContinue: false,
+  optionsSuccessStatus: 204
+}));
 app.use(express.json());
 app.use(limiter);
+
+// Add request logging middleware
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  console.log('Headers:', req.headers);
+  next();
+});
+
+// Add error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Error:', err);
+  res.status(500).json({ error: 'Internal server error' });
+});
+
+// Test endpoint
+app.get('/test', (req, res) => {
+  res.json({ message: 'Server is running' });
+});
 
 // Database setup
 let db;
@@ -148,7 +174,9 @@ const validateVoteInput = (req, res, next) => {
 
 // Profile endpoint
 app.get('/api/profiles', (req, res) => {
+  console.log('GET /api/profiles - Request received');
   if (!db) {
+    console.error('Database not initialized');
     return res.status(500).json({ error: 'Database not initialized' });
   }
   
@@ -157,6 +185,7 @@ app.get('/api/profiles', (req, res) => {
       console.error('Database error:', err);
       return res.status(500).json({ error: 'Internal server error' });
     }
+    console.log(`Returning ${rows.length} profiles`);
     res.json(rows);
   });
 });
@@ -234,18 +263,26 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: 'Something broke!' });
+// Start the server with error handling
+const server = app.listen(port, host, (err) => {
+  if (err) {
+    console.error('Error starting server:', err);
+    process.exit(1);
+  }
+  console.log(`Server is running on http://${host}:${port}`);
+  console.log('CORS is enabled for all origins');
+  
+  // Test database connection
+  if (db) {
+    db.get("SELECT COUNT(*) as count FROM profiles", [], (err, row) => {
+      if (err) {
+        console.error('Database error:', err);
+      } else {
+        console.log(`Database connected, found ${row.count} profiles`);
+      }
+    });
+  }
 });
-
-// For local development
-if (process.env.NODE_ENV !== 'production') {
-  app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
-  });
-}
 
 // For Vercel serverless functions
 module.exports = app;

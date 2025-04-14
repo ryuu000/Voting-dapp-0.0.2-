@@ -12,15 +12,16 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "express": "^4.21.2",
+    "@openzeppelin/contracts": "^5.2.0",
     "cors": "^2.8.5",
-    "sqlite3": "^5.1.6",
-    "express-rate-limit": "^6.7.0",
-    "web3": "^4.16.0",
-    "@openzeppelin/contracts": "^5.2.0"
+    "express": "^4.21.2",
+    "express-rate-limit": "^6.11.2",
+    "side-channel-weakmap": "^1.0.2",
+    "sqlite3": "^5.1.7",
+    "web3": "^4.16.0"
   },
   "devDependencies": {
-    "nodemon": "^2.0.22",
-    "hardhat": "^0.0.7"
+    "hardhat": "^0.0.7",
+    "nodemon": "^2.0.22"
   }
 }
